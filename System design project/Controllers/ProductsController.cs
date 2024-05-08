@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,30 +8,35 @@ using System_design_project.Models;
 
 namespace System_design_project.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
-
         public ProductsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public IActionResult Create()
         {
-            var products = await _context.Products.ToListAsync();
-            return View(products);
+            // Return the Create view
+            return View();
         }
 
-        public async Task<IActionResult> Details(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Products product)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "Home");
             }
             return View(product);
         }
+
 
         // Add more actions for create, edit, delete, etc.
     }
